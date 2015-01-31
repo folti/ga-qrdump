@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 
 import sys
 import os
@@ -35,10 +36,9 @@ def list_entries(args):
     resp = query_db(args)
     fmt = "% 3s: %-20s: %s"
     title = fmt % ('ID', 'Issuer', 'e-mail')
-    print title
-    print '-' * len(title)
+    print("%s\n%s" % (title, len(title)))
     for row in resp:
-        print fmt % (row[0], row[3] if row[3] is not None else row[4], row[1])
+        print(fmt % (row[0], row[3] if row[3] is not None else row[4], row[1]))
 
 
 def process_db(args):
@@ -54,20 +54,20 @@ def process_db(args):
     for row in resp:
         qrurl = "otpauth://totp/%s?secret=%s&issuer=%s" % (row[1], row[2], row[3] if row[3] is not None else row[4])
         if args.url_only:
-            print qrurl
+            print(qrurl)
         qr = make_qrimage(qrurl)
 
         if args.tty:
-            print "%s: %s" % (row[3] if row[3] is not None else row[4], row[1])
+            print("%s: %s" % (row[3] if row[3] is not None else row[4], row[1]))
             if isatty:
                 qr.print_tty()
             else:
                 qr.print_ascii(out=sys.stdout, invert=True)
-            print
+            print()
 
         if args.png:
             outname = re.sub('[:/]', '_', row[1]) + '.png'
-            print outname
+            print(outname)
             img = qr.make_image()
             img.save(outname)
 
@@ -86,7 +86,7 @@ def main():
     if not args.db:
         args.db = default_db
     if not os.path.exists(default_db):
-        print "Database file '%s' not exists."
+        print("Database file '%s' not exists.")
         sys.exit(1)
 
     process_db(args)
