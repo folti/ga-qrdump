@@ -23,8 +23,9 @@ def make_qrimage(url):
 
 def query_db(args):
     conn = sqlite3.connect(args.db)
+    conn.row_factory = sqlite3.Row
     c = conn.cursor()
-    qry = '''SELECT _id, email, secret, issuer, original_name FROM accounts '''
+    qry = '''SELECT * FROM accounts '''
     if args.id:
         qry += ''' WHERE _id={id}'''.format(id=args.id)
     qry += ''' ORDER BY _id'''
@@ -36,10 +37,36 @@ def list_entries(args):
     resp = query_db(args)
     fmt = "% 3s: %-20s: %s"
     title = fmt % ('ID', 'Issuer', 'e-mail')
-    print("%s\n%s" % (title, len(title)))
+    print("%s\n%s" % (title, '-' * len(title)))
     for row in resp:
-        print(fmt % (row[0], row[3] if row[3] is not None else row[4], row[1]))
+        print(fmt % (row['_id'], row['issuer'] if row['issuer'] is not None else row['original_name'], row['email']))
 
+
+def create_otpauth_url(atype, secret, email, **kwds):
+    if isinstance(atype, int):
+        if atype == 0:
+            atype = 'totp'
+        elif atype == 1:
+            atype == 'hotp'
+        else:
+            raise ValueError("Invalid OTP type '%s'" % atype)
+
+    url = "otpauth://" + atype + "/" + email + "?secret=" + secret
+
+    if atype == 'totp':
+        if 'period' in kwds:
+            url += '&period=' + kwds['period']
+
+        if 'digits' in kwds:
+            url += '&digits=' + kwds['digits']
+    elif atype == 'hotp':
+        if 'counter' in kwds:
+            url +='&counter=' + kwds['counter']
+
+    if 'issuer' in kwds:
+        url += "&issuer=" + kwds['issuer']
+
+    return url
 
 def process_db(args):
     if args.list_entries:
@@ -52,7 +79,9 @@ def process_db(args):
 
     resp = query_db(args)
     for row in resp:
-        qrurl = "otpauth://totp/%s?secret=%s&issuer=%s" % (row[1], row[2], row[3] if row[3] is not None else row[4])
+        qrurl = create_otpauth_url(atype=row['type'], secret=row['secret'], email=row['email'],
+                                   issuer=row['issuer'] if row['issuer'] is not None else row['original_name'],
+                                   counter=row['counter'])
         if args.url_only:
             print(qrurl)
         qr = make_qrimage(qrurl)
@@ -66,7 +95,7 @@ def process_db(args):
             print()
 
         if args.png:
-            outname = re.sub('[:/]', '_', row[1]) + '.png'
+            outname = re.sub('[:/]', '_', row['email']) + '.png'
             print(outname)
             img = qr.make_image()
             img.save(outname)
