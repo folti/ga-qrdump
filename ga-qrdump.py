@@ -87,12 +87,14 @@ def process_db(args):
         qr = make_qrimage(qrurl)
 
         if args.tty:
-            print("%s: %s" % (row[3] if row[3] is not None else row[4], row[1]))
+            print("%s: %s" % (row['issuer'] if row['issuer'] is not None else row['original_name'], row['email']))
             if isatty:
                 qr.print_tty()
+                print()
+                raw_input('Press enter to continue...')
             else:
                 qr.print_ascii(out=sys.stdout, invert=True)
-            print()
+                print()
 
         if args.png:
             outname = re.sub('[:/]', '_', row['email']) + '.png'
