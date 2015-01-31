@@ -10,6 +10,9 @@ Requirements
  * qrcode python module [1]
  * Google Authenticator's SQLite3 database, taken from a rooted device (google it)
  
- 
- 
+WARNING!!!
+----------
+
+Very crude and no checks for data integrity.
+
  [1]: https://pypi.python.org/pypi/qrcode
