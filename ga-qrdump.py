@@ -8,6 +8,7 @@ import sqlite3
 import qrcode
 import codecs
 import argparse
+from urllib import quote, quote_plus
 
 
 default_db = 'databases'
@@ -51,7 +52,7 @@ def create_otpauth_url(atype, secret, email, **kwds):
         else:
             raise ValueError("Invalid OTP type '%s'" % atype)
 
-    url = "otpauth://" + atype + "/" + email + "?secret=" + secret
+    url = "otpauth://" + atype + "/" + quote(email, safe="/@") + "?secret=" + secret
 
     if atype == 'totp':
         if 'period' in kwds:
@@ -64,7 +65,7 @@ def create_otpauth_url(atype, secret, email, **kwds):
             url +='&counter=' + kwds['counter']
 
     if 'issuer' in kwds:
-        url += "&issuer=" + kwds['issuer']
+        url += "&issuer=" + quote_plus(kwds['issuer'])
 
     return url
 
