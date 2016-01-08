@@ -117,8 +117,8 @@ def main():
     args = parser.parse_args()
     if not args.db:
         args.db = default_db
-    if not os.path.exists(default_db):
-        print("Database file '%s' not exists.")
+    if not os.path.exists(args.db):
+        print("Database file '%s' not exists." % args.db)
         sys.exit(1)
 
     process_db(args)
